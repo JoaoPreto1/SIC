@@ -7,23 +7,23 @@ graph TD
     classDef client fill:#fdd,stroke:#333,stroke-width:2px;
 
     %% Nós
-    ClientWeb[Cliente Web (React)]:::client
-    ClientMob[Cliente Mobile]:::client
+    ClientWeb["Cliente Web (React)"]
+    ClientMob["Cliente Mobile"]
     
-    Gateway[API Gateway (Node.js)]:::gateway
+    Gateway["API Gateway (Node.js)"]
     
     subgraph "Cluster de Microserviços"
-        Auth[Auth Service (Node.js)]:::service
-        User[User Service (GraphQL)]:::service
-        Catalog[Catalog Service (Python)]:::service
-        Booking[Booking Service (Node.js)]:::service
+        Auth["Auth Service (Node.js)"]
+        User["User Service (GraphQL)"]
+        Catalog["Catalog Service (Python)"]
+        Booking["Booking Service (Node.js)"]
     end
     
     subgraph "Camada de Dados"
-        AuthDB[(Auth DB\nPostgres)]:::db
-        UserDB[(User DB\nMongo)]:::db
-        CatalogDB[(Catalog DB\nPostgres)]:::db
-        BookingDB[(Booking DB\nMongo)]:::db
+        AuthDB[("Auth DB\nPostgres")]
+        UserDB[("User DB\nMongo")]
+        CatalogDB[("Catalog DB\nPostgres")]
+        BookingDB[("Booking DB\nMongo")]
     end
 
     %% Relações Externas
@@ -45,3 +45,9 @@ graph TD
     User --- UserDB
     Catalog --- CatalogDB
     Booking --- BookingDB
+
+    %% Aplicação de Estilos
+    class ClientWeb,ClientMob client;
+    class Gateway gateway;
+    class Auth,User,Catalog,Booking service;
+    class AuthDB,UserDB,CatalogDB,BookingDB db;
