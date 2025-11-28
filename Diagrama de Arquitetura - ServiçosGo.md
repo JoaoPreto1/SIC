@@ -1,29 +1,29 @@
 ```mermaid
 graph TD
     %% Estilos
-    classDef gateway fill:#f9f,stroke:#333,stroke-width:2px;
-    classDef service fill:#bbf,stroke:#333,stroke-width:2px;
-    classDef db fill:#dfd,stroke:#333,stroke-width:2px;
-    classDef client fill:#fdd,stroke:#333,stroke-width:2px;
+    classDef gateway fill:#ff9e64,stroke:#333,stroke-width:4px,color:black,font-weight:bold;
+    classDef service fill:#7aa2f7,stroke:#333,stroke-width:4px,color:black,font-weight:bold;
+    classDef db fill:#9ece6a,stroke:#333,stroke-width:4px,color:black,font-weight:bold;
+    classDef client fill:#f7768e,stroke:#333,stroke-width:4px,color:black,font-weight:bold;
 
     %% Nós
-    ClientWeb["Cliente Web (React)"]
-    ClientMob["Cliente Mobile"]
+    ClientWeb["<b>Cliente Web (React)</b>"]
+    ClientMob["<b>Cliente Mobile</b>"]
     
-    Gateway["API Gateway (Node.js)"]
+    Gateway["<b>API Gateway (Node.js)</b>"]
     
     subgraph "Cluster de Microserviços"
-        Auth["Auth Service (Node.js)"]
-        User["User Service (GraphQL)"]
-        Catalog["Catalog Service (Python)"]
-        Booking["Booking Service (Node.js)"]
+        Auth["<b>Auth Service (Node.js)</b>"]
+        User["<b>User Service (GraphQL)</b>"]
+        Catalog["<b>Catalog Service (Python)</b>"]
+        Booking["<b>Booking Service (Node.js)</b>"]
     end
     
     subgraph "Camada de Dados"
-        AuthDB[("Auth DB\nPostgres")]
-        UserDB[("User DB\nMongo")]
-        CatalogDB[("Catalog DB\nPostgres")]
-        BookingDB[("Booking DB\nMongo")]
+        AuthDB[("<b>Auth DB\nMongo</b>")]
+        UserDB[("<b>User DB\nMongo</b>")]
+        CatalogDB[("<b>Catalog DB\nMongo</b>")]
+        BookingDB[("<b>Booking DB\nMongo</b>")]
     end
 
     %% Relações Externas
@@ -51,3 +51,4 @@ graph TD
     class Gateway gateway;
     class Auth,User,Catalog,Booking service;
     class AuthDB,UserDB,CatalogDB,BookingDB db;
+```
