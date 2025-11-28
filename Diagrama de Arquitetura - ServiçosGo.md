@@ -7,7 +7,7 @@ graph TD
     classDef client fill:#f7768e,stroke:#333,stroke-width:4px,color:black,font-weight:bold;
 
     %% Nós
-    ClientWeb["<b>Cliente Web (React)</b>"]
+    ClientWeb["<b>Cliente Web</b>"]
     ClientMob["<b>Cliente Mobile</b>"]
     
     Gateway["<b>API Gateway (Node.js)</b>"]
