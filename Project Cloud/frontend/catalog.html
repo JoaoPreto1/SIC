@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Serviços - ServiGo</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <a href="index.html" class="logo">ServiGo</a>
+        <nav>
+            <a href="catalog.html">Serviços</a>
+            <a href="bookings.html">As minhas Reservas</a>
+            <a href="profile.html">Perfil</a>
+            <a href="login.html" id="authLink">Login</a>
+            <a href="ServicesDashboard.html">Status</a>
+        </nav>
+    </header>
+
+    <main>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1>Serviços Disponíveis</h1>
+            <button id="addServiceBtn" class="btn" style="display: none;">+ Novo Serviço</button>
+        </div>
+
+        <!-- Add Service Form Modal (Simplified as a togglable div) -->
+        <div id="addServiceForm" class="card" style="display: none; margin-bottom: 2rem; max-width: 600px;">
+            <h3>Adicionar Novo Serviço</h3>
+            <form id="newServiceForm">
+                <div class="form-group">
+                    <label>Título</label>
+                    <input type="text" id="title" required>
+                </div>
+                <div class="form-group">
+                    <label>Descrição</label>
+                    <textarea id="description" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Preço (€)</label>
+                    <input type="number" id="price" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Categoria</label>
+                    <select id="category">
+                        <option value="Canalização">Canalização</option>
+                        <option value="Eletricidade">Eletricidade</option>
+                        <option value="Limpeza">Limpeza</option>
+                        <option value="Digital">Digital</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn">Criar Serviço</button>
+            </form>
+        </div>
+
+        <div id="servicesGrid" class="card-grid">
+            <!-- Services will be loaded here -->
+            <p>A carregar serviços...</p>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+    <script>
+        const servicesGrid = document.getElementById('servicesGrid');
+        const addServiceBtn = document.getElementById('addServiceBtn');
+        const addServiceForm = document.getElementById('addServiceForm');
+
+        // Check if user is a provider to show Add button
+        if (localStorage.getItem('role') === 'FREELANCER') {
+            addServiceBtn.style.display = 'block';
+        }
+
+        addServiceBtn.addEventListener('click', () => {
+            addServiceForm.style.display = addServiceForm.style.display === 'none' ? 'block' : 'none';
+        });
+
+        document.getElementById('newServiceForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+            const providerId = localStorage.getItem('userId');
+
+            const serviceData = {
+                title: document.getElementById('title').value,
+                description: document.getElementById('description').value,
+                price: parseFloat(document.getElementById('price').value),
+                category: document.getElementById('category').value,
+                provider_id: providerId // In a real app backend would extract from token
+            };
+
+            try {
+                const res = await fetch('http://localhost:8080/api/catalog/services/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                        // Auth header if needed by Catalog Service (currently it might not strictly enforce on create, but good practice)
+                    },
+                    body: JSON.stringify(serviceData)
+                });
+
+                if (res.ok) {
+                    alert('Serviço criado!');
+                    location.reload();
+                } else {
+                    alert('Erro ao criar serviço');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        async function loadServices() {
+            try {
+                const res = await fetch('http://localhost:8080/api/catalog/services/');
+                const services = await res.json();
+
+                servicesGrid.innerHTML = '';
+
+                if (services.length === 0) {
+                    servicesGrid.innerHTML = '<p>Nenhum serviço encontrado.</p>';
+                    return;
+                }
+
+                services.forEach(service => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+                        <h3>${service.title}</h3>
+                        <p style="color: var(--primary-color); font-weight: bold;">${service.category}</p>
+                        <p>${service.description}</p>
+                        <p style="font-size: 1.2rem;">€${service.price}</p>
+                        <button class="btn" onclick="bookService('${service.id}', '${service.provider_id}')">Reservar</button>
+                    `;
+                    servicesGrid.appendChild(card);
+                });
+            } catch (err) {
+                servicesGrid.innerHTML = '<p style="color: red">Erro ao carregar serviços. Verifique se o Catalog Service está online.</p>';
+            }
+        }
+
+        function bookService(serviceId, providerId) {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Faça login para reservar.');
+                window.location.href = 'login.html';
+                return;
+            }
+            // Navigate to bookings page with query params to pre-fill or create instantly
+            // For simplicity, let's create it right here or ask for confirmation
+            if (confirm('Confirmar reserva?')) {
+                createBooking(serviceId, providerId);
+            }
+        }
+
+        async function createBooking(serviceId, providerId) {
+            const userId = localStorage.getItem('userId');
+
+            try {
+                const res = await fetch('http://localhost:8080/api/bookings/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        clientId: userId,
+                        providerId: providerId,
+                        serviceId: serviceId.toString(),
+                        date: new Date()
+                    })
+                });
+
+                if (res.ok) {
+                    alert('Reserva efetuada com sucesso!');
+                    window.location.href = 'bookings.html';
+                } else {
+                    alert('Erro ao reservar.');
+                }
+            } catch (err) {
+                alert('Erro de conexão.');
+            }
+        }
+
+        loadServices();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O meu Perfil - ServiGo</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <a href="index.html" class="logo">ServiGo</a>
+        <nav>
+            <a href="catalog.html">Serviços</a>
+            <a href="bookings.html">As minhas Reservas</a>
+            <a href="profile.html">Perfil</a>
+            <a href="login.html" id="authLink">Login</a>
+            <a href="ServicesDashboard.html">Status</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="card" style="max-width: 600px; margin: 0 auto;">
+            <h1>O meu Perfil</h1>
+            <div id="profileContent">
+                <p>A carregar perfil...</p>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+    <script>
+        const profileContent = document.getElementById('profileContent');
+
+        async function loadProfile() {
+            const userId = localStorage.getItem('userId');
+
+            if (!userId) {
+                profileContent.innerHTML = '<p>Faça login para ver o seu perfil.</p><a href="login.html" class="btn">Ir para Login</a>';
+                return;
+            }
+
+            const query = `
+                query GetProfile($userId: String!) {
+                    getProfile(userId: $userId) {
+                        name
+                        bio
+                        rating
+                    }
+                }
+            `;
+
+            try {
+                const res = await fetch('http://localhost:8080/api/users/graphql', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        query: query,
+                        variables: { userId: userId }
+                    })
+                });
+
+                const result = await res.json();
+
+                if (result.errors) {
+                    console.error(result.errors);
+                    profileContent.innerHTML = `
+                        <p>Perfil não encontrado. Crie o seu perfil agora.</p>
+                        <form id="createProfileForm">
+                            <div class="form-group">
+                                <label>Nome</label>
+                                <input type="text" id="newName" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Bio</label>
+                                <textarea id="newBio"></textarea>
+                            </div>
+                            <button type="submit" class="btn">Criar Perfil</button>
+                        </form>
+                    `;
+
+                    document.getElementById('createProfileForm').addEventListener('submit', createProfile);
+                } else if (result.data.getProfile) {
+                    const profile = result.data.getProfile;
+                    profileContent.innerHTML = `
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                            <div style="width: 100px; height: 100px; background-color: #ddd; border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #555;">
+                                ${profile.name.charAt(0).toUpperCase()}
+                            </div>
+                            <h2>${profile.name}</h2>
+                            <p>${profile.bio || 'Sem biografia.'}</p>
+                            <p><strong>Avaliação:</strong> ${profile.rating || 0}/5</p>
+                        </div>
+                    `;
+                } else {
+                    // Empty profile case (should trigger create form usually, reusing logic)
+                    profileContent.innerHTML = `
+                        <p>Perfil não encontrado. Crie o seu perfil agora.</p>
+                        <form id="createProfileForm">
+                            <div class="form-group">
+                                <label>Nome</label>
+                                <input type="text" id="newName" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Bio</label>
+                                <textarea id="newBio"></textarea>
+                            </div>
+                            <button type="submit" class="btn">Criar Perfil</button>
+                        </form>
+                    `;
+                    document.getElementById('createProfileForm').addEventListener('submit', createProfile);
+                }
+
+            } catch (err) {
+                console.error(err);
+                profileContent.innerHTML = '<p style="color: red">Erro ao carregar perfil (GraphQL).</p>';
+            }
+        }
+
+        async function createProfile(e) {
+            e.preventDefault();
+            const userId = localStorage.getItem('userId');
+            const name = document.getElementById('newName').value;
+            const bio = document.getElementById('newBio').value;
+
+            const mutation = `
+                mutation CreateProfile($userId: String!, $name: String!, $bio: String) {
+                    createProfile(userId: $userId, name: $name, bio: $bio) {
+                        id
+                        name
+                    }
+                }
+            `;
+
+            try {
+                const res = await fetch('http://localhost:8080/api/users/graphql', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        query: mutation,
+                        variables: { userId, name, bio }
+                    })
+                });
+
+                const result = await res.json();
+                if (result.data.createProfile) {
+                    alert('Perfil criado!');
+                    location.reload();
+                } else {
+                    alert('Erro ao criar perfil.');
+                }
+            } catch (err) {
+                alert('Erro de conexão.');
+            }
+        }
+
+        loadProfile();
+    </script>
+</body>
+
+</html>

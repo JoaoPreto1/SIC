@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - ServiGo</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <a href="index.html" class="logo">ServiGo</a>
+        <nav>
+            <a href="catalog.html">Serviços</a>
+            <a href="login.html">Login</a>
+            <a href="ServicesDashboard.html">Status</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="auth-container card">
+            <h2 id="formTitle">Login</h2>
+            <form id="authForm">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required>
+                </div>
+                <div class="form-group" id="roleGroup" style="display: none;">
+                    <label for="role">Tipo de Conta</label>
+                    <select id="role">
+                        <option value="CLIENT">Cliente</option>
+                        <option value="FREELANCER">Profissional</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn" style="width: 100%;">Entrar</button>
+            </form>
+            <p style="text-align: center; margin-top: 1rem;">
+                <a href="#" id="toggleForm">Não tem conta? Registe-se</a>
+            </p>
+            <p id="message" style="text-align: center; color: var(--accent-color);"></p>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+    <script>
+        const form = document.getElementById('authForm');
+        const toggleBtn = document.getElementById('toggleForm');
+        const roleGroup = document.getElementById('roleGroup');
+        const formTitle = document.getElementById('formTitle');
+        const message = document.getElementById('message');
+
+        let isLogin = true;
+
+        toggleBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            isLogin = !isLogin;
+            if (isLogin) {
+                formTitle.textContent = 'Login';
+                roleGroup.style.display = 'none';
+                document.querySelector('button').textContent = 'Entrar';
+                toggleBtn.textContent = 'Não tem conta? Registe-se';
+            } else {
+                formTitle.textContent = 'Registo';
+                roleGroup.style.display = 'block';
+                document.querySelector('button').textContent = 'Registar';
+                toggleBtn.textContent = 'Já tem conta? Faça Login';
+            }
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const endpoint = isLogin ? '/login' : '/register';
+            const url = `http://localhost:8080/api/auth${endpoint}`;
+            const body = { email, password };
+
+            if (!isLogin) {
+                body.role = document.getElementById('role').value;
+            }
+
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    if (isLogin) {
+                        localStorage.setItem('token', data.token);
+                        // Decode token to get user info (simplified)
+                        const payload = JSON.parse(atob(data.token.split('.')[1]));
+                        localStorage.setItem('userId', payload.id);
+                        localStorage.setItem('role', payload.role);
+                        window.location.href = 'index.html';
+                    } else {
+                        message.style.color = 'green';
+                        message.textContent = 'Registo efetuado com sucesso! Faça login.';
+                        // Switch to login view
+                        toggleBtn.click();
+                    }
+                } else {
+                    message.style.color = 'red';
+                    message.textContent = data.error || 'Ocorreu um erro.';
+                }
+            } catch (err) {
+                message.textContent = 'Erro de conexão com o servidor.';
+            }
+        });
+    </script>
+</body>
+
+</html>

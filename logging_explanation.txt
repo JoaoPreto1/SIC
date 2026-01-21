@@ -1,0 +1,26 @@
+O QUE É O LOGGING ESTRUTURADO?
+
+No desenvolvimento profissional de software, "logging" é o registo de eventos que acontecem no sistema. É como a "caixa negra" de um avião.
+
+1. O Problema do console.log
+Quando usamos `console.log("Erro aqui")`, a mensagem sai apenas como texto simples. Se tivermos 1000 mensagens por segundo, é impossível filtrar ou analisar automaticamente o que é importante.
+
+2. A Solução: Winston (Node.js) e Logging (Python)
+Estas bibliotecas permitem "Logging Estruturado". Em vez de texto solto, cada registo é um objeto de dados (JSON) com campos definidos:
+
+Exemplo de Log Estruturado:
+{
+  "level": "error",                 // Nível de gravidade (info, warn, error)
+  "message": "Falha na conexão DB", // A mensagem em si
+  "service": "auth-service",        // Qual o microsserviço que falhou
+  "timestamp": "2026-01-21T10:00:00Z" // Hora exata
+}
+
+3. Vantagens
+- Filtragem: Podemos pedir "Mostra-me apenas os erros (level: error) do serviço de pagamentos".
+- Monitorização: Ferramentas automáticas podem ler estes JSONs e enviar alertas se houver muitos erros.
+- Padrão: Todos os devs escrevem logs da mesma maneira.
+
+Neste projeto:
+- Vamos substituir os `console.log` por um `logger` configurado.
+- Os logs vão aparecer no terminal do Docker, mas agora com carimbos de tempo e níveis de prioridade visíveis.

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>As minhas Reservas - ServiGo</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <a href="index.html" class="logo">ServiGo</a>
+        <nav>
+            <a href="catalog.html">Serviços</a>
+            <a href="bookings.html">As minhas Reservas</a>
+            <a href="profile.html">Perfil</a>
+            <a href="login.html" id="authLink">Login</a>
+            <a href="ServicesDashboard.html">Status</a>
+        </nav>
+    </header>
+
+    <main>
+        <h1>As minhas Reservas</h1>
+
+        <div id="bookingsList" class="card-grid">
+            <p>A carregar reservas...</p>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+    <script>
+        const bookingsList = document.getElementById('bookingsList');
+
+        async function loadBookings() {
+            const userId = localStorage.getItem('userId');
+            const token = localStorage.getItem('token');
+
+            if (!token || !userId) {
+                bookingsList.innerHTML = '<p>Faça login para ver as suas reservas.</p>';
+                return;
+            }
+
+            // Determine if user is Client or Provider to filter correctly
+            // The Booking Service API filters by clientId or providerId query params
+            // For simplicity, we'll try to guess based on role or just show what we requested
+            const role = localStorage.getItem('role');
+            const queryParam = role === 'FREELANCER' ? `providerId=${userId}` : `clientId=${userId}`;
+
+            try {
+                const res = await fetch(`http://localhost:8080/api/bookings/?${queryParam}`);
+                const bookings = await res.json();
+
+                bookingsList.innerHTML = '';
+
+                if (bookings.length === 0) {
+                    bookingsList.innerHTML = '<p>Não tem reservas agendadas.</p>';
+                    return;
+                }
+
+                bookings.forEach(booking => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+
+                    const date = new Date(booking.date).toLocaleDateString();
+                    const statusClass = booking.status === 'COMPLETED' ? 'color: green' :
+                        booking.status === 'PENDING' ? 'color: orange' :
+                            booking.status === 'REJECTED' ? 'color: red' : 'color: blue';
+
+                    card.innerHTML = `
+                        <h3>Reserva #${booking._id.substring(0, 8)}</h3>
+                        <p><strong>Serviço ID:</strong> ${booking.serviceId}</p>
+                        <p><strong>Data:</strong> ${date}</p>
+                        <p><strong>Status:</strong> <span style="${statusClass}; font-weight: bold;">${booking.status}</span></p>
+                    `;
+
+                    // Allow provider to accept/reject
+                    if (role === 'FREELANCER' && booking.status === 'PENDING') {
+                        card.innerHTML += `
+                            <div style="margin-top: 10px;">
+                                <button class="btn" style="background-color: green;" onclick="updateStatus('${booking._id}', 'ACCEPTED')">Aceitar</button>
+                                <button class="btn" style="background-color: red;" onclick="updateStatus('${booking._id}', 'REJECTED')">Rejeitar</button>
+                            </div>
+                        `;
+                    }
+
+                    // Allow client/provider to mark as completed
+                    if (booking.status === 'ACCEPTED') {
+                        card.innerHTML += `
+                            <div style="margin-top: 10px;">
+                                <button class="btn" onclick="updateStatus('${booking._id}', 'COMPLETED')">Concluir</button>
+                            </div>
+                        `;
+                    }
+
+                    bookingsList.appendChild(card);
+                });
+            } catch (err) {
+                bookingsList.innerHTML = '<p style="color: red">Erro ao carregar reservas.</p>';
+            }
+        }
+
+        async function updateStatus(id, newStatus) {
+            try {
+                const res = await fetch(`http://localhost:8080/api/bookings/${id}/status`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+
+                if (res.ok) {
+                    loadBookings();
+                } else {
+                    alert('Erro ao atualizar status.');
+                }
+            } catch (err) {
+                alert('Erro de conexão.');
+            }
+        }
+
+        loadBookings();
+    </script>
+</body>
+
+</html>
