@@ -45,14 +45,16 @@ app.use('/api/catalog', createProxyMiddleware({
 }));
 
 // Booking Service
-app.use('/api/bookings', createProxyMiddleware({
-    target: process.env.BOOKING_SERVICE_URL || 'http://booking-service:3002',
+app.use(
+  '/api/bookings',
+  createProxyMiddleware({
+    target: process.env.BOOKING_SERVICE_URL,
     changeOrigin: true,
     pathRewrite: {
-        '^/api/bookings': '',
-    },
-}));
-
+      '^/api/bookings': '/bookings'
+    }
+  })
+);
 app.listen(PORT, () => {
     console.log(`API Gateway running on port ${PORT}`);
 });
