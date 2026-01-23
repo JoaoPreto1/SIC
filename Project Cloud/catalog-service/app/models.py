@@ -1,12 +1,19 @@
-from sqlalchemy import Column, Integer, String, Float
-from .database import Base
+from pydantic import BaseModel, Field
 
-class ServiceItem(Base):
-    __tablename__ = "services"
+class ServiceBase(BaseModel):
+    title: str
+    description: str
+    price: float
+    category: str
 
-    id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, index=True)
-    description = Column(String)
-    price = Column(Float)
-    category = Column(String)
-    provider_id = Column(String) # Link to User Service/Auth
+class ServiceCreate(ServiceBase):
+    pass
+
+class ServiceResponse(ServiceBase):
+    id: str = Field(alias="_id")
+    provider_id: str
+
+    model_config = {
+        "populate_by_name": True,
+    }
+

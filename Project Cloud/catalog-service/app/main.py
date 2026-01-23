@@ -1,34 +1,35 @@
 from fastapi import FastAPI
-from .database import engine, Base
-from .routers import catalog
+from fastapi.middleware.cors import CORSMiddleware
+from app.routers import catalog
 import logging
-import json
-import sys
+from pythonjsonlogger import jsonlogger
 
-# Configure Logging
-class JsonFormatter(logging.Formatter):
-    def format(self, record):
-        log_record = {
-            "level": record.levelname,
-            "message": record.getMessage(),
-            "service": "catalog-service",
-            "timestamp": self.formatTime(record, self.datefmt)
-        }
-        return json.dumps(log_record)
-
-logger = logging.getLogger("catalog-service")
-handler = logging.StreamHandler(sys.stdout)
-handler.setFormatter(JsonFormatter())
-logger.addHandler(handler)
+# -------------------------------
+# Logger JSON
+# -------------------------------
+logger = logging.getLogger()
+logHandler = logging.StreamHandler()
+formatter = jsonlogger.JsonFormatter()
+logHandler.setFormatter(formatter)
+logger.addHandler(logHandler)
 logger.setLevel(logging.INFO)
 
-Base.metadata.create_all(bind=engine)
+# -------------------------------
+# FastAPI app
+# -------------------------------
+app = FastAPI(title="Catalog Service")
 
-app = FastAPI(title="Catalog Service", description="Manage services offered by freelancers")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
+# Rotas
 app.include_router(catalog.router)
 
+# Health check
 @app.get("/health")
-def health_check():
-    logger.info("Health check requested")
-    return {"status": "UP", "service": "Catalog Service"}
+async def health():
+    return {"status": "ok"}

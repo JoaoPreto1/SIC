@@ -26,7 +26,7 @@
             <button id="addServiceBtn" class="btn" style="display: none;">+ Novo Serviço</button>
         </div>
 
-        <!-- Add Service Form Modal (Simplified as a togglable div) -->
+        <!-- Add Service Form Modal -->
         <div id="addServiceForm" class="card" style="display: none; margin-bottom: 2rem; max-width: 600px;">
             <h3>Adicionar Novo Serviço</h3>
             <form id="newServiceForm">
@@ -57,131 +57,131 @@
         </div>
 
         <div id="servicesGrid" class="card-grid">
-            <!-- Services will be loaded here -->
             <p>A carregar serviços...</p>
         </div>
     </main>
 
-    <script src="script.js"></script>
-    <script>
-        const servicesGrid = document.getElementById('servicesGrid');
-        const addServiceBtn = document.getElementById('addServiceBtn');
-        const addServiceForm = document.getElementById('addServiceForm');
+<script>
+    const servicesGrid = document.getElementById('servicesGrid');
+    const addServiceBtn = document.getElementById('addServiceBtn');
+    const addServiceForm = document.getElementById('addServiceForm');
 
-        // Check if user is a provider to show Add button
-        if (localStorage.getItem('role') === 'FREELANCER') {
-            addServiceBtn.style.display = 'block';
-        }
+    // Mostrar botão de adicionar apenas para freelancers
+    if (localStorage.getItem('role') === 'FREELANCER') {
+        addServiceBtn.style.display = 'block';
+    }
 
-        addServiceBtn.addEventListener('click', () => {
-            addServiceForm.style.display = addServiceForm.style.display === 'none' ? 'block' : 'none';
-        });
+    addServiceBtn.addEventListener('click', () => {
+        addServiceForm.style.display = addServiceForm.style.display === 'none' ? 'block' : 'none';
+    });
 
-        document.getElementById('newServiceForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const token = localStorage.getItem('token');
-            const providerId = localStorage.getItem('userId');
+    document.getElementById('newServiceForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const providerId = localStorage.getItem('userId');
 
-            const serviceData = {
-                title: document.getElementById('title').value,
-                description: document.getElementById('description').value,
-                price: parseFloat(document.getElementById('price').value),
-                category: document.getElementById('category').value,
-                provider_id: providerId // In a real app backend would extract from token
-            };
+        const serviceData = {
+            title: document.getElementById('title').value,
+            description: document.getElementById('description').value,
+            price: parseFloat(document.getElementById('price').value),
+            category: document.getElementById('category').value,
+            provider_id: providerId
+        };
 
-            try {
-                const res = await fetch('http://localhost:8080/api/catalog/services/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                        // Auth header if needed by Catalog Service (currently it might not strictly enforce on create, but good practice)
-                    },
-                    body: JSON.stringify(serviceData)
-                });
+        try {
+            const res = await fetch('http://localhost:8080/api/catalog/services/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(serviceData)
+            });
 
-                if (res.ok) {
-                    alert('Serviço criado!');
-                    location.reload();
-                } else {
-                    alert('Erro ao criar serviço');
-                }
-            } catch (err) {
-                console.error(err);
+            if (res.ok) {
+                alert('Serviço criado!');
+                loadServices();  // recarrega serviços sem reload da página
+                addServiceForm.style.display = 'none';
+                document.getElementById('newServiceForm').reset();
+            } else {
+                alert('Erro ao criar serviço');
             }
-        });
-
-        async function loadServices() {
-            try {
-                const res = await fetch('http://localhost:8080/api/catalog/services/');
-                const services = await res.json();
-
-                servicesGrid.innerHTML = '';
-
-                if (services.length === 0) {
-                    servicesGrid.innerHTML = '<p>Nenhum serviço encontrado.</p>';
-                    return;
-                }
-
-                services.forEach(service => {
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    card.innerHTML = `
-                        <h3>${service.title}</h3>
-                        <p style="color: var(--primary-color); font-weight: bold;">${service.category}</p>
-                        <p>${service.description}</p>
-                        <p style="font-size: 1.2rem;">€${service.price}</p>
-                        <button class="btn" onclick="bookService('${service.id}', '${service.provider_id}')">Reservar</button>
-                    `;
-                    servicesGrid.appendChild(card);
-                });
-            } catch (err) {
-                servicesGrid.innerHTML = '<p style="color: red">Erro ao carregar serviços. Verifique se o Catalog Service está online.</p>';
-            }
+        } catch (err) {
+            console.error(err);
+            alert('Erro de conexão.');
         }
+    });
 
-        function bookService(serviceId, providerId) {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                alert('Faça login para reservar.');
-                window.location.href = 'login.html';
+    async function loadServices() {
+        try {
+            const res = await fetch('http://localhost:8080/api/catalog/services/');
+            const services = await res.json();
+
+            servicesGrid.innerHTML = '';
+
+            if (services.length === 0) {
+                servicesGrid.innerHTML = '<p>Nenhum serviço encontrado.</p>';
                 return;
             }
-            // Navigate to bookings page with query params to pre-fill or create instantly
-            // For simplicity, let's create it right here or ask for confirmation
-            if (confirm('Confirmar reserva?')) {
-                createBooking(serviceId, providerId);
-            }
+
+            services.forEach(service => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <h3>${service.title}</h3>
+                    <p style="color: var(--primary-color); font-weight: bold;">${service.category}</p>
+                    <p>${service.description}</p>
+                    <p style="font-size: 1.2rem;">€${service.price}</p>
+                    <button class="btn" onclick="bookService('${service._id}', '${service.provider_id}')">Reservar</button>
+                `;
+                servicesGrid.appendChild(card);
+            });
+        } catch (err) {
+            console.error(err);
+            servicesGrid.innerHTML = '<p style="color: red">Erro ao carregar serviços. Verifique se o Catalog Service está online.</p>';
+        }
+    }
+
+    function bookService(serviceId, providerId) {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('Faça login para reservar.');
+            window.location.href = 'login.html';
+            return;
         }
 
-        async function createBooking(serviceId, providerId) {
-            const userId = localStorage.getItem('userId');
-
-            try {
-                const res = await fetch('http://localhost:8080/api/bookings/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        clientId: userId,
-                        providerId: providerId,
-                        serviceId: serviceId.toString(),
-                        date: new Date()
-                    })
-                });
-
-                if (res.ok) {
-                    alert('Reserva efetuada com sucesso!');
-                    window.location.href = 'bookings.html';
-                } else {
-                    alert('Erro ao reservar.');
-                }
-            } catch (err) {
-                alert('Erro de conexão.');
-            }
+        if (confirm('Confirmar reserva?')) {
+            createBooking(serviceId, providerId);
         }
+    }
 
-        loadServices();
-    </script>
+    async function createBooking(serviceId, providerId) {
+        const userId = localStorage.getItem('userId');
+
+        try {
+            const res = await fetch('http://localhost:8080/api/bookings/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    clientId: userId,
+                    providerId: providerId,
+                    serviceId: serviceId,
+                    date: new Date()
+                })
+            });
+
+            if (res.ok) {
+                alert('Reserva efetuada com sucesso!');
+                window.location.href = 'bookings.html';
+            } else {
+                alert('Erro ao reservar.');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Erro de conexão.');
+        }
+    }
+
+    // Carrega os serviços ao abrir a página
+    loadServices();
+</script>
+
 </body>
 
 </html>
