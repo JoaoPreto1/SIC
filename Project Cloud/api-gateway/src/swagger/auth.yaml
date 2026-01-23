@@ -1,0 +1,66 @@
+/api/auth/register:
+  post:
+    summary: Register a new user
+    tags:
+      - Auth
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - email
+              - password
+            properties:
+              email:
+                type: string
+                format: email
+                example: "user@example.com"
+              password:
+                type: string
+                format: password
+                example: "StrongP@ssw0rd!"
+    responses:
+      201:
+        description: User registered successfully
+      400:
+        description: Invalid input data
+
+/api/auth/login:
+  post:
+    summary: Login a user
+    tags:
+      - Auth
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - email
+              - password
+            properties:
+              email:
+                type: string
+                format: email
+                example: "user@example.com"
+              password:
+                type: string
+                format: password
+                example: "StrongP@ssw0rd!"
+    responses:
+      200:
+        description: User logged in successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  description: JWT token to use in authenticated requests
+                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      401:
+        description: Invalid credentials

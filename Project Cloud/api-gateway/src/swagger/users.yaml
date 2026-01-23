@@ -1,0 +1,211 @@
+openapi: 3.0.3
+info:
+  title: User Service API
+  version: 1.0.0
+  description: API de autenticação e perfis de usuário
+
+servers:
+  - url: http://localhost:3001
+    description: Servidor local
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    UserLogin:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+
+    UserRegister:
+      type: object
+      required:
+        - email
+        - password
+        - name
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        name:
+          type: string
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        name:
+          type: string
+        bio:
+          type: string
+        skills:
+          type: array
+          items:
+            type: string
+        rating:
+          type: number
+          format: float
+
+paths:
+  /auth/register:
+    post:
+      summary: Cria um novo usuário
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegister'
+      responses:
+        '201':
+          description: Usuário criado com sucesso
+        '400':
+          description: Erro de validação
+
+  /auth/login:
+    post:
+      summary: Login do usuário
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: Login bem-sucedido com token JWT
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '401':
+          description: Credenciais inválidas
+
+  /profiles:
+    get:
+      summary: Retorna o perfil do usuário autenticado
+      tags:
+        - Profiles
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Perfil do usuário
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: Não autenticado
+
+    post:
+      summary: Cria o perfil do usuário logado
+      tags:
+        - Profiles
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - bio
+              properties:
+                name:
+                  type: string
+                bio:
+                  type: string
+      responses:
+        '201':
+          description: Perfil criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: Não autenticado
+
+    patch:
+      summary: Atualiza o perfil do usuário logado
+      tags:
+        - Profiles
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                bio:
+                  type: string
+      responses:
+        '200':
+          description: Perfil atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: Não autenticado
+
+  /profiles/skills:
+    post:
+      summary: Adiciona skills ao perfil do usuário
+      tags:
+        - Profiles
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - skills
+              properties:
+                skills:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Skills adicionadas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: Não autenticado

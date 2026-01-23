@@ -24,3 +24,5 @@ paths:
     $ref: './catalog.yaml'
   /api/auth:
     $ref: './auth.yaml'
+  /api/users:
+    $ref: './users.yaml'

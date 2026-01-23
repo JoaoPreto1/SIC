@@ -1,0 +1,124 @@
+/api/bookings:
+  post:
+    summary: Create a new booking
+    tags:
+      - Bookings
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - serviceId
+              - date
+            properties:
+              serviceId:
+                type: string
+                example: "65fa1c9e3f1b0cafca302a3f"
+              date:
+                type: string
+                format: date-time
+                example: "2026-02-01T14:00:00Z"
+    responses:
+      201:
+        description: Booking created successfully
+      400:
+        description: Invalid data
+      401:
+        description: Unauthorized
+
+/api/bookings/my:
+  get:
+    summary: Get my bookings
+    tags:
+      - Bookings
+    security:
+      - BearerAuth: []
+    responses:
+      200:
+        description: List of user bookings
+      401:
+        description: Unauthorized
+
+/api/bookings/{id}:
+  get:
+    summary: Get booking by ID
+    tags:
+      - Bookings
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      200:
+        description: Booking found
+      404:
+        description: Booking not found
+      401:
+        description: Unauthorized
+
+  delete:
+    summary: Delete a booking
+    tags:
+      - Bookings
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      200:
+        description: Booking deleted
+      404:
+        description: Booking not found
+      401:
+        description: Unauthorized
+
+/api/bookings/{id}/status:
+  patch:
+    summary: Update booking status
+    tags:
+      - Bookings
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - status
+            properties:
+              status:
+                type: string
+                enum:
+                  - PENDING
+                  - ACCEPTED
+                  - REJECTED
+                  - COMPLETED
+    responses:
+      200:
+        description: Booking status updated
+      400:
+        description: Invalid status
+      404:
+        description: Booking not found
+      401:
+        description: Unauthorized

@@ -1,0 +1,110 @@
+openapi: 3.0.3
+info:
+  title: Catálogo de Serviços
+  description: API para gerenciamento de serviços e catálogo de prestadores.
+  version: 1.0.0
+
+paths:
+  /services/:
+    post:
+      summary: Cria um novo serviço
+      tags:
+        - Catálogo de Serviços
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - description
+                - price
+                - category
+              properties:
+                title:
+                  type: string
+                  example: "Aulas de Yoga"
+                description:
+                  type: string
+                  example: "Sessões de Yoga para iniciantes e avançados."
+                price:
+                  type: number
+                  format: float
+                  example: 50.0
+                category:
+                  type: string
+                  example: "Bem-estar"
+                provider_id:
+                  type: string
+                  example: "69734c3277300f8ce219f538"
+      responses:
+        200:
+          description: Serviço criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceResponse'
+        400:
+          description: Dados inválidos
+
+    get:
+      summary: Lista todos os serviços
+      tags:
+        - Catálogo de Serviços
+      responses:
+        200:
+          description: Lista de serviços
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServiceResponse'
+
+  /services/{service_id}:
+    get:
+      summary: Obtém detalhes de um serviço
+      tags:
+        - Catálogo de Serviços
+      parameters:
+        - in: path
+          name: service_id
+          required: true
+          schema:
+            type: string
+          description: ID do serviço
+      responses:
+        200:
+          description: Serviço encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceResponse'
+        404:
+          description: Serviço não encontrado
+
+components:
+  schemas:
+    ServiceResponse:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "697355eac3d113796a29d19d"
+        title:
+          type: string
+          example: "Aulas de Yoga"
+        description:
+          type: string
+          example: "Sessões de Yoga para iniciantes e avançados."
+        price:
+          type: number
+          format: float
+          example: 50.0
+        category:
+          type: string
+          example: "Bem-estar"
+        provider_id:
+          type: string
+          example: "69734c3277300f8ce219f538"
