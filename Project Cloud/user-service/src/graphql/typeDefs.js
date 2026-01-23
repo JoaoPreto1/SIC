@@ -11,13 +11,14 @@ const typeDefs = gql`
   }
 
   type Query {
-    getProfile(userId: String!): UserProfile
-    getAllProfiles: [UserProfile]
+      getProfile: UserProfile   # Sem argumentos, sempre retorna o perfil logado
+      getAllProfiles: [UserProfile]
   }
 
   type Mutation {
-    createProfile(userId: String!, name: String!, bio: String): UserProfile
-    updateProfile(userId: String!, name: String, bio: String): UserProfile
+      createProfile(name: String!, bio: String): UserProfile
+      updateProfile(name: String, bio: String): UserProfile
+      addSkills(skills: [String!]!): UserProfile
   }
 `;
 

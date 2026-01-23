@@ -17,7 +17,14 @@ logger.setLevel(logging.INFO)
 # -------------------------------
 # FastAPI app
 # -------------------------------
-app = FastAPI(title="Catalog Service")
+app = FastAPI(
+    title="Catalog Service",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json"
+)
+
+
 
 app.add_middleware(
     CORSMiddleware,
