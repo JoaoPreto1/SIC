@@ -25,26 +25,9 @@ services:
     build: ./auth-service
     restart: on-failure
     environment:
-      - DATABASE_URL=postgres://user:pass@auth-db:5432/authdb
-      - JWT_SECRET=supersecretkey
-    depends_on:
-      - auth-db
-    networks:
-      - app-network
-    deploy:
-      replicas: 2
-      restart_policy:
-        condition: on-failure
-
-  auth-db:
-    image: postgres:15-alpine
-    restart: always
-    environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=pass
-      - POSTGRES_DB=authdb
-    volumes:
-      - auth-db-data:/var/lib/postgresql/data
+      - MONGO_URI=${DATABASE_URL}
+      - JWT_SECRET=${SECRET}
+      - PORT=3000
     networks:
       - app-network
 
